@@ -1,5 +1,5 @@
 import random
-
+import math
 class Cluster:
 
 	def init(self):
@@ -17,10 +17,13 @@ class Cluster:
 		self.x_points.append(x)
 		self.y_points.append(y)
 
-	def get_distance(self,x, y):
-		x_dist = x - self.centroid[0]
-		y_dist = y - self.centroid[1]
-		distance = abs(x_dist + y_dist)
+	def get_distance(self,x, y,eqn): #eqn.. 1 for Manhattan, 2 for Euclidian
+		if(eqn == 1):
+			x_dist = abs(x - self.centroid[0])
+			y_dist = abs(y - self.centroid[1])
+			distance = x_dist + y_dist
+		else:
+			distance = math.sqrt( (x - self.centroid[0])**2 + (y - self.centroid[1])**2 )
 		return distance
 
 	def get_avg_x(self):
@@ -40,12 +43,15 @@ class Cluster:
 
 
 def use_default():
-	global points, x_points, y_points
+	global points, x_points, y_points,cluster_list
 	points = 8
 	print(points)
 	x_points = [2,2,8,5,7,6,1,4]
 	y_points = [10,5,4,8,5,4,2,9]
 	num_clusters(3)
+	cluster_list[0].set_centroid(2,10)	
+	cluster_list[1].set_centroid(5,8)	
+	cluster_list[2].set_centroid(1,2)	
 
 
 # get dataset
@@ -55,8 +61,8 @@ def enter_dataset():
 	y_points = []
 	points = int(input('please enter number of points of dataset: '))
 	for point in range(points): 
-		x_points.append(int(input('please enter x of point %d : ' %(point+1))))
-		y_points.append(int(input('please enter y of point %d : ' %(point+1))))
+		x_points.append(float(input('please enter x of point %d : ' %(point+1))))
+		y_points.append(float(input('please enter y of point %d : ' %(point+1))))
 
 #create clusters 
 def num_clusters(default=0):
@@ -72,11 +78,11 @@ def num_clusters(default=0):
 		cluster_list.append(i)
 
 def set_centroid_points(randomize=0):
-	global cluster_list, points, x_points, y_points
-	for cluster in range(len(cluster_list)):
+	global cluster_list, points, x_points, y_points, cluster_number
+	for cluster in range(cluster_number):
 		if randomize == 1:
-			centroid_x = int(input('please enter x of centroid of cluster %d : ' %(cluster +1)))
-			centroid_y = int(input('please enter y of centroid of cluster %d : ' %(cluster +1)))
+			centroid_x = float(input('please enter x of centroid of cluster %d : ' %(cluster +1)))
+			centroid_y = float(input('please enter y of centroid of cluster %d : ' %(cluster +1)))
 			cluster_list[cluster].set_centroid(centroid_x, centroid_y)
 		else:
 			randi = random.randint(0, (points-1)) # same index in parallel arrays to get points
@@ -85,18 +91,22 @@ def set_centroid_points(randomize=0):
 			cluster_list[cluster].set_centroid(centroid_x, centroid_y)
 def display(cluster_list, iterations):
 	i = 1
+	print('\n\n\n\n')
+	print('===========================================')
 	print('cluster centroids = '),
 	for cluster in cluster_list:
-		print('cluster %d x=%f y=%f' %(i, cluster.get_centroid_x(), cluster.get_centroid_y()))
+		print('cluster %d x=%.2f y=%.2f' %(i, cluster.get_centroid_x(), cluster.get_centroid_y()))
 		i += 1
-	print('\n iterations = %d' %iterations)
+	print('\n iterations = %d' %(iterations-1))
+	print('===========================================')
+	print('\n\n\n\n')
 
-def calculate():
+def calculate(eqn):
 	global cluster_list, points, x_points, y_points
 	iterations = 1
 	flag = False
-	while(not flag):
-		
+	while(flag < len(cluster_list)):
+		flag=0
 		print('point',end='')
 		for i in range(len(cluster_list)): #header
 			print('-----M%d distance ------' %(i+1), end=''),
@@ -107,8 +117,11 @@ def calculate():
 			print('(%d,%d) '%(x_points[i], y_points[i]), end='')
 			min = 999
 			for cluster in cluster_list:
-				distance = cluster.get_distance(x_points[i], y_points[i])
-				print('\t %d \t\t' %distance, end='')
+				if eqn == 1:
+					distance = cluster.get_distance(x_points[i], y_points[i],1)
+				else:
+					distance = cluster.get_distance(x_points[i], y_points[i],2)
+				print('\t %.2f \t\t' %distance, end='')
 				if distance < min:
 					min = distance
 					nearest = cluster
@@ -130,9 +143,9 @@ def calculate():
 				x = clusterr.get_avg_x()
 				y = clusterr.get_avg_y()
 				if(x == clusterr.get_centroid_x() and y == clusterr.get_centroid_y()):
-					flag = True
+					flag += 1
 				else:
-					flag = False
+					flag -= 1
 				clusterr.set_centroid(x,y)
 				clusterr.init() # remove all points from clusters
 				print('avg-----%.2f-------%.2f'%(x, y))
@@ -142,9 +155,12 @@ def calculate():
 			print('\n\n\n')
 
 	display(cluster_list, iterations)
-			
-		
-
+print('\n\t\t\tAssem Makhyon')			
+print('\n\n\n\n***************************************************************')
+print('*[[please follow this sequence]]                             		 ')
+print('*a)enter dataset[2]  b)enter number of clusters[3] c)set centroid points[5]    ')
+print('OR to use default settings: a)use default dataset and clusters[1] b)calculate[6]')
+print('***************************************************************\n\n\n\n')
 
 
 
@@ -155,7 +171,8 @@ while(True):
 	print("3) enter number of clusters ")
 	print("4) use random centroid points")
 	print("5) set centroid points ")
-	print("6) calculate")
+	print("6) calculate Manhattan")
+	print("7) calculate Euclidian")
 	print("-------------------------------------")
 	choice = int(input('select: '))
 	if choice == 1:
@@ -169,4 +186,6 @@ while(True):
 	if choice == 5:
 		set_centroid_points(1)
 	if choice == 6:
-		calculate()
+		calculate(1)
+	if choice == 7:
+		calculate(2)
